@@ -1,23 +1,39 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <memory>
 #include "NvTriStrip.h"
 
 using namespace std;
 
 int main()
 {
-   vector<string> msg {"Hello", "C++", "World", "from", "VS Code", "and the C++ extension!"};
-
-   for (auto& word : msg)
-   {
-      cout << word << " ";
-   }
-   cout << endl;
-
-vector<unsigned short> indices;
+    vector<unsigned short> indices{1, 2, 3, 2, 3, 4, static_cast<unsigned short>(-1)};
     //Call NvTriStrip to generate the strips
-    PrimitiveGroup *prims;
+    //PrimitiveGroup *prims;
+    unique_ptr<PrimitiveGroup[]> prims;
     unsigned short numprims;
-    bool done = GenerateStrips(&indices[0], indices.size(), &prims, &numprims);
+    {
+        PrimitiveGroup *pprims;
+        bool done = GenerateStrips(indices.data(), indices.size(), &pprims, &numprims);
+        prims.reset(pprims);
+    }
+    cout << "numprims:" << numprims << endl;
+
+    for (unsigned int primidx = 0; primidx < numprims; primidx++)
+    {
+        PrimitiveGroup &pg = prims[primidx];
+
+        cout << "pg.type:" << pg.type << endl;
+        cout << "pg.numIndices:" << pg.numIndices << endl;
+
+        for (unsigned int i = 0; i < pg.numIndices; i++)
+        {
+            cout << pg.indices[i] << " ";
+        }
+
+        cout << endl;
+    }
+
+    //cleanup
 }
