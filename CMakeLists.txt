@@ -5,14 +5,12 @@ project(objmodea3)
 
 add_library(NvStrip STATIC NvTriStrip.cpp NvTriStripObjects.cpp)
 
-
 find_package(Assimp REQUIRED)
-
 
 message(STATUS "Assimp status:")
 message(STATUS "    libraries: ${ASSIMP_LIBRARIES}")
 
-
 add_executable(objmodea3 code.cpp)
+#target_include_directories(objmodea3 "${ASSIMP_INCLUDE_DIR}")
 target_link_libraries(objmodea3 NvStrip "${ASSIMP_LIBRARIES}")
 set_property(TARGET objmodea3 PROPERTY CXX_STANDARD 17)

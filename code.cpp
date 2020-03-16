@@ -4,6 +4,11 @@
 #include <memory>
 #include "NvTriStrip.h"
 
+#include <assimp/Importer.hpp> 
+#include <assimp/scene.h>     
+#include <assimp/postprocess.h>
+#include <assimp/cimport.h>
+
 using namespace std;
 
 int main()
