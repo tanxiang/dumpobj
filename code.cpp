@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <filesystem>
 #include "NvTriStrip.h"
 
 #include <assimp/Importer.hpp>
@@ -64,21 +65,21 @@ int main(int argc, char *argv[])
         auto pScene = Importer.ReadFile(loadFilename, defaultFlags);
         if (pScene)
         {
-            for (unsigned int i = 0; i < pScene->mNumMeshes; i++)
+            for (unsigned int meshIndex = 0; meshIndex < pScene->mNumMeshes; ++meshIndex)
             {
-                std::vector<float> vertexBuffer;
-                std::vector<uint16_t> indexBuffer;
-
-                auto paiMesh = pScene->mMeshes[i];
+                auto paiMesh = pScene->mMeshes[meshIndex];
                 auto vertexCount = paiMesh->mNumVertices;
 
-                aiColor3D pColor{};
-                pScene->mMaterials[paiMesh->mMaterialIndex]->Get(AI_MATKEY_COLOR_DIFFUSE, pColor);
-                const aiVector3D Zero3D{};
+                //aiColor3D pColor{};
+                //pScene->mMaterials[paiMesh->mMaterialIndex]->Get(AI_MATKEY_COLOR_DIFFUSE, pColor);
+                //const aiVector3D Zero3D{};
+                std::vector<float> vertexBuffer;
+
                 for (unsigned int vertIndex = 0; vertIndex < paiMesh->mNumVertices; ++vertIndex)
                 {
                     for (auto fm : FMT)
                     {
+                        auto vertexBufferSize = vertexBuffer.size();
                         switch (fm)
                         {
                         case 'P':
@@ -116,7 +117,7 @@ int main(int argc, char *argv[])
                                 vertexBuffer.push_back(pTangent.z);
                             }
                             break;
-                        case 'B':
+                        case 'A':
                             if (paiMesh->HasTangentsAndBitangents())
                             {
                                 const auto &pTangent = paiMesh->mTangents[vertIndex];
@@ -126,11 +127,33 @@ int main(int argc, char *argv[])
                             }
                             break;
                         default:
+                            cerr << "CANNOT GET:" << fm << endl;
+                            return -2;
+                        }
+                        if (vertexBufferSize == vertexBuffer.size())
+                        {
+                            cerr << "NO:" << fm << " in model mesh" << endl;
+                            return -1;
                         }
                     }
-
-                    const auto *pBiTangent = (paiMesh->HasTangentsAndBitangents()) ? &(paiMesh->mBitangents[vertIndex]) : &Zero3D;
                 }
+                //save vertexBuffer file in meshIndex dir
+
+                std::vector<uint16_t> indexBuffer;
+                for (unsigned int facesIndex = 0; facesIndex < paiMesh->mNumFaces; ++facesIndex)
+                {
+                    const auto &Face = paiMesh->mFaces[facesIndex];
+                }
+                //save indexBuffer file in meshIndex dir
+
+                unique_ptr<PrimitiveGroup[]> prims;
+                unsigned short numprims;
+                {
+                    PrimitiveGroup *pprims;
+                    bool done = GenerateStrips(indexBuffer.data(), indexBuffer.size(), &pprims, &numprims);
+                    prims.reset(pprims);
+                }
+                //save prims strip files in meshIndex dir
             }
         }
     }

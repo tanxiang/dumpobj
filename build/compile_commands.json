@@ -1,0 +1,19 @@
+[
+{
+  "directory": "/home/ttand/work/code/build",
+  "command": "/usr/bin/c++    -O3 -DNDEBUG   -o CMakeFiles/NvStrip.dir/NvTriStrip.cpp.o -c /home/ttand/work/code/NvTriStrip.cpp",
+  "file": "/home/ttand/work/code/NvTriStrip.cpp"
+},
+
+{
+  "directory": "/home/ttand/work/code/build",
+  "command": "/usr/bin/c++    -O3 -DNDEBUG   -o CMakeFiles/NvStrip.dir/NvTriStripObjects.cpp.o -c /home/ttand/work/code/NvTriStripObjects.cpp",
+  "file": "/home/ttand/work/code/NvTriStripObjects.cpp"
+},
+
+{
+  "directory": "/home/ttand/work/code/build",
+  "command": "/usr/bin/c++    -O3 -DNDEBUG   -std=gnu++17 -o CMakeFiles/objmodea3.dir/code.cpp.o -c /home/ttand/work/code/code.cpp",
+  "file": "/home/ttand/work/code/code.cpp"
+}
+]
