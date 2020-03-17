@@ -1,4 +1,6 @@
 #include <iostream>
+#include <fstream>
+#include <algorithm>
 #include <vector>
 #include <string>
 #include <memory>
@@ -73,87 +75,103 @@ int main(int argc, char *argv[])
                 //aiColor3D pColor{};
                 //pScene->mMaterials[paiMesh->mMaterialIndex]->Get(AI_MATKEY_COLOR_DIFFUSE, pColor);
                 //const aiVector3D Zero3D{};
-                std::vector<float> vertexBuffer;
-
-                for (unsigned int vertIndex = 0; vertIndex < paiMesh->mNumVertices; ++vertIndex)
                 {
-                    for (auto fm : FMT)
+                    std::vector<float> vertexBuffer;
+
+                    for (unsigned int vertIndex = 0; vertIndex < paiMesh->mNumVertices; ++vertIndex)
                     {
-                        auto vertexBufferSize = vertexBuffer.size();
-                        switch (fm)
+                        for (auto fm : FMT)
                         {
-                        case 'P':
-                            if (paiMesh->HasPositions())
+                            auto vertexBufferSize = vertexBuffer.size();
+                            switch (fm)
                             {
-                                const auto &pPos = paiMesh->mVertices[vertIndex];
-                                vertexBuffer.push_back(pPos.x);
-                                vertexBuffer.push_back(-pPos.y);
-                                vertexBuffer.push_back(pPos.z);
+                            case 'P':
+                                if (paiMesh->HasPositions())
+                                {
+                                    const auto &pPos = paiMesh->mVertices[vertIndex];
+                                    vertexBuffer.push_back(pPos.x);
+                                    vertexBuffer.push_back(-pPos.y);
+                                    vertexBuffer.push_back(pPos.z);
+                                }
+                                break;
+                            case 'N':
+                                if (paiMesh->HasNormals())
+                                {
+                                    const auto &pNormal = paiMesh->mNormals[vertIndex];
+                                    vertexBuffer.push_back(pNormal.x);
+                                    vertexBuffer.push_back(-pNormal.y);
+                                    vertexBuffer.push_back(pNormal.z);
+                                }
+                                break;
+                            case 'T':
+                                if (paiMesh->HasTextureCoords(0))
+                                {
+                                    const auto &pTexCoord = paiMesh->mTextureCoords[0][vertIndex];
+                                    vertexBuffer.push_back(pTexCoord.x);
+                                    vertexBuffer.push_back(pTexCoord.y);
+                                }
+                                break;
+                            case 'C':
+                                if (paiMesh->HasVertexColors(vertIndex))
+                                {
+                                    const auto &pTangent = paiMesh->mTangents[vertIndex];
+                                    vertexBuffer.push_back(pTangent.x);
+                                    vertexBuffer.push_back(pTangent.y);
+                                    vertexBuffer.push_back(pTangent.z);
+                                }
+                                break;
+                            case 'A':
+                                if (paiMesh->HasTangentsAndBitangents())
+                                {
+                                    const auto &pTangent = paiMesh->mTangents[vertIndex];
+                                    vertexBuffer.push_back(pTangent.x);
+                                    vertexBuffer.push_back(pTangent.y);
+                                    vertexBuffer.push_back(pTangent.z);
+                                }
+                                break;
+                            default:
+                                cerr << "CANNOT GET:" << fm << endl;
+                                return -2;
                             }
-                            break;
-                        case 'N':
-                            if (paiMesh->HasNormals())
+                            if (vertexBufferSize == vertexBuffer.size())
                             {
-                                const auto &pNormal = paiMesh->mNormals[vertIndex];
-                                vertexBuffer.push_back(pNormal.x);
-                                vertexBuffer.push_back(-pNormal.y);
-                                vertexBuffer.push_back(pNormal.z);
+                                cerr << "NO:" << fm << " in model mesh" << endl;
+                                return -1;
                             }
-                            break;
-                        case 'T':
-                            if (paiMesh->HasTextureCoords(0))
-                            {
-                                const auto &pTexCoord = paiMesh->mTextureCoords[0][vertIndex];
-                                vertexBuffer.push_back(pTexCoord.x);
-                                vertexBuffer.push_back(pTexCoord.y);
-                            }
-                            break;
-                        case 'C':
-                            if (paiMesh->HasVertexColors(vertIndex))
-                            {
-                                const auto &pTangent = paiMesh->mTangents[vertIndex];
-                                vertexBuffer.push_back(pTangent.x);
-                                vertexBuffer.push_back(pTangent.y);
-                                vertexBuffer.push_back(pTangent.z);
-                            }
-                            break;
-                        case 'A':
-                            if (paiMesh->HasTangentsAndBitangents())
-                            {
-                                const auto &pTangent = paiMesh->mTangents[vertIndex];
-                                vertexBuffer.push_back(pTangent.x);
-                                vertexBuffer.push_back(pTangent.y);
-                                vertexBuffer.push_back(pTangent.z);
-                            }
-                            break;
-                        default:
-                            cerr << "CANNOT GET:" << fm << endl;
-                            return -2;
-                        }
-                        if (vertexBufferSize == vertexBuffer.size())
-                        {
-                            cerr << "NO:" << fm << " in model mesh" << endl;
-                            return -1;
                         }
                     }
+                    //save vertexBuffer file in meshIndex dir
+                    string path = loadFilename + "_" + to_string(meshIndex) + "_vert.bin";
+                    ofstream filebuffer{path, std::ios::out | std::ofstream::binary};
+                    copy(vertexBuffer.begin(), vertexBuffer.end(), ostreambuf_iterator<char>(filebuffer));
                 }
-                //save vertexBuffer file in meshIndex dir
-
-                std::vector<uint16_t> indexBuffer;
-                for (unsigned int facesIndex = 0; facesIndex < paiMesh->mNumFaces; ++facesIndex)
                 {
-                    const auto &Face = paiMesh->mFaces[facesIndex];
-                }
-                //save indexBuffer file in meshIndex dir
+                    std::vector<uint16_t> indexBuffer;
+                    for (unsigned int facesIndex = 0; facesIndex < paiMesh->mNumFaces; ++facesIndex)
+                    {
+                        const auto &Face = paiMesh->mFaces[facesIndex];
 
-                unique_ptr<PrimitiveGroup[]> prims;
-                unsigned short numprims;
-                {
-                    PrimitiveGroup *pprims;
-                    bool done = GenerateStrips(indexBuffer.data(), indexBuffer.size(), &pprims, &numprims);
-                    prims.reset(pprims);
+                        if (Face.mNumIndices != 3)
+                            continue;
+                        indexBuffer.push_back(Face.mIndices[0]);
+                        indexBuffer.push_back(Face.mIndices[1]);
+                        indexBuffer.push_back(Face.mIndices[2]);
+                    }
+
+                    { //save indexBuffer file in meshIndex dir
+                        string path = loadFilename + "_" + to_string(meshIndex) + "_indx.bin";
+                        ofstream filebuffer{path, std::ios::out | std::ofstream::binary};
+                        copy(indexBuffer.begin(), indexBuffer.end(), ostreambuf_iterator<char>(filebuffer));
+                    }
+                    unique_ptr<PrimitiveGroup[]> prims;
+                    unsigned short numprims;
+                    {
+                        PrimitiveGroup *pprims;
+                        bool done = GenerateStrips(indexBuffer.data(), indexBuffer.size(), &pprims, &numprims);
+                        prims.reset(pprims);
+                    }
+                    //save prims strip files in meshIndex dir
                 }
-                //save prims strip files in meshIndex dir
             }
         }
     }
