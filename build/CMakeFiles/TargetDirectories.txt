@@ -1,4 +1,0 @@
-/home/ttand/work/code/build/CMakeFiles/edit_cache.dir
-/home/ttand/work/code/build/CMakeFiles/rebuild_cache.dir
-/home/ttand/work/code/build/CMakeFiles/NvStrip.dir
-/home/ttand/work/code/build/CMakeFiles/objmodea3.dir
