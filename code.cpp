@@ -178,7 +178,12 @@ int main(int argc, char *argv[])
                         copy(indexBuffer.begin(), indexBuffer.end(), ostreambuf_iterator<char>(filebuffer));
                     }
                     cout << "pIndexMap.size()" << pIndexMap.size() << endl;
-                    for_each(indexBuffer.begin(), indexBuffer.end(), [&](auto &n) { n = pIndexMap[n]; });
+                    for_each(indexBuffer.begin(), indexBuffer.end(), [&](auto &n) { cout << n << ' '; });
+                    cout << endl;
+                    //for_each(indexBuffer.begin(), indexBuffer.end(), [&](auto &n) { n = pIndexMap[n]; });
+                    for_each(indexBuffer.begin(), indexBuffer.end(), [&](auto &n) { cout << n << ' '; });
+                    cout << endl;
+
                     unique_ptr<PrimitiveGroup[]> prims;
                     unsigned short numprims;
                     {
@@ -192,6 +197,11 @@ int main(int argc, char *argv[])
                         string path = loadFilename + "_" + to_string(meshIndex) + "_strip_" + to_string(primidx) + "_" + to_string(pg.type) + "_indx.bin";
                         cout << "pg.type:" << pg.type << endl;
                         cout << "pg.numIndices:" << pg.numIndices << endl;
+                        for (int i; i < pg.numIndices; ++i)
+                        {
+                            cout << pg.indices[i] << ' ';
+                        }
+                        cout << endl;
                         ofstream filebuffer{path, ios::out | ofstream::binary};
                         filebuffer.write(reinterpret_cast<const char *>(pg.indices), sizeof(unsigned short) + pg.numIndices);
                     }
