@@ -20,11 +20,11 @@ int main(int argc, char *argv[])
     string runName;
     vector<string> loadFilenames;
     string FMT = "PNT";
-    int defaultFlags = aiProcess_FlipWindingOrder | aiProcess_Triangulate | aiProcess_PreTransformVertices | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals;
+    int defaultFlags = aiProcessPreset_TargetRealtime_Fast;
     bool noStrip = false;
     for (int argi = 0; argi < argc; ++argi)
     {
-        cout << argv[argi] << endl;
+        //cout << argv[argi] << endl;
         if (!argi)
             runName = argv[argi];
         else
@@ -42,7 +42,6 @@ int main(int argc, char *argv[])
                     exit(-1);
                 }
 
-                //cerr << "Cache Size " << cachesize << endl;
                 SetCacheSize(cachesize);
             }
             if (strcmp(argv[argi], "-fm") == 0 ||
@@ -66,7 +65,12 @@ int main(int argc, char *argv[])
     for (auto &loadFilename : loadFilenames)
     {
         auto pScene = Importer.ReadFile(loadFilename, defaultFlags);
-        if (pScene)
+        if (!pScene)
+        {
+            cerr << loadFilename << " error: " << Importer.GetErrorString() << endl;
+            return -1;
+        }
+        else
         {
             for (unsigned int meshIndex = 0; meshIndex < pScene->mNumMeshes; ++meshIndex)
             {
@@ -76,10 +80,10 @@ int main(int argc, char *argv[])
                 //aiColor3D pColor{};
                 //pScene->mMaterials[paiMesh->mMaterialIndex]->Get(AI_MATKEY_COLOR_DIFFUSE, pColor);
                 //const aiVector3D Zero3D{};
-                map<unsigned int, unsigned int> pIndexMap;
+                //map<unsigned int, unsigned int> pIndexMap;
                 {
                     vector<float> vertexBuffer;
-                    map<aiVector3D, unsigned int> pPosMap;
+                    //map<aiVector3D, unsigned int> pPosMap;
                     for (unsigned int vertIndex = 0; vertIndex < paiMesh->mNumVertices; ++vertIndex)
                     {
                         for (auto fm : FMT)
@@ -95,9 +99,9 @@ int main(int argc, char *argv[])
                                     vertexBuffer.push_back(-pPos.y);
                                     vertexBuffer.push_back(pPos.z);
                                     //auto [ignore, bInset] =
-                                    pPosMap.try_emplace(pPos, vertIndex);
+                                    //pPosMap.try_emplace(pPos, vertIndex);
                                     //if (!bInset)
-                                    pIndexMap.try_emplace(vertIndex, pPosMap[pPos]);
+                                    //pIndexMap.try_emplace(vertIndex, pPosMap[pPos]);
                                 }
                                 break;
                             case 'N':
@@ -150,8 +154,7 @@ int main(int argc, char *argv[])
                     string path = loadFilename + "_" + to_string(meshIndex) + "_" + FMT + "_vert.bin";
                     cout << path << '\n'
                          << "paiMesh->mNumVertices" << paiMesh->mNumVertices << '\n'
-                         << "vertexBuffer.size()" << vertexBuffer.size() << '\n'
-                         << "pPosMap.size()" << pPosMap.size() << endl;
+                         << "vertexBuffer.size()" << vertexBuffer.size() << endl;
 
                     ofstream filebuffer{path, ios::out | ofstream::binary};
                     copy(vertexBuffer.begin(), vertexBuffer.end(), ostreambuf_iterator<char>(filebuffer));
@@ -172,17 +175,17 @@ int main(int argc, char *argv[])
                     { //save indexBuffer file in meshIndex dir
                         string path = loadFilename + "_" + to_string(meshIndex) + "_indx.bin";
                         cout << path << '\n'
-                             << paiMesh->mNumFaces << '\n'
-                             << indexBuffer.size() << endl;
+                             << "paiMesh->mNumFaces" << paiMesh->mNumFaces << '\n'
+                             << "indexBuffer.size()" << indexBuffer.size() << endl;
                         ofstream filebuffer{path, ios::out | ofstream::binary};
                         copy(indexBuffer.begin(), indexBuffer.end(), ostreambuf_iterator<char>(filebuffer));
                     }
-                    cout << "pIndexMap.size()" << pIndexMap.size() << endl;
+                    //cout << "pIndexMap.size()" << pIndexMap.size() << endl;
                     for_each(indexBuffer.begin(), indexBuffer.end(), [&](auto &n) { cout << n << ' '; });
                     cout << endl;
                     //for_each(indexBuffer.begin(), indexBuffer.end(), [&](auto &n) { n = pIndexMap[n]; });
-                    for_each(indexBuffer.begin(), indexBuffer.end(), [&](auto &n) { cout << n << ' '; });
-                    cout << endl;
+                    //for_each(indexBuffer.begin(), indexBuffer.end(), [&](auto &n) { cout << n << ' '; });
+                    //cout << endl;
 
                     unique_ptr<PrimitiveGroup[]> prims;
                     unsigned short numprims;
