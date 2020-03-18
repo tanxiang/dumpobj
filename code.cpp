@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
                         }
                     }
                     //save vertexBuffer file in meshIndex dir
-                    string path = loadFilename + "_" + to_string(meshIndex) + "_vert.bin";
+                    string path = loadFilename + "_" + to_string(meshIndex) + "_" + FMT + "_vert.bin";
                     ofstream filebuffer{path, std::ios::out | std::ofstream::binary};
                     copy(vertexBuffer.begin(), vertexBuffer.end(), ostreambuf_iterator<char>(filebuffer));
                 }
@@ -173,11 +173,11 @@ int main(int argc, char *argv[])
                     for (unsigned int primidx = 0; primidx < numprims; + primidx)
                     {
                         PrimitiveGroup &pg = prims[primidx];
-                        string path = loadFilename + "_" + to_string(meshIndex) + "_strip_" + to_string(primidx) + "_indx.bin";
+                        string path = loadFilename + "_" + to_string(meshIndex) + "_strip_" + to_string(primidx) +"_"+to_string(pg.type)+ "_indx.bin";
                         cout << "pg.type:" << pg.type << endl;
                         cout << "pg.numIndices:" << pg.numIndices << endl;
                         ofstream filebuffer{path, std::ios::out | std::ofstream::binary};
-                        filebuffer.write(reinterpret_cast<const char *>(pg.indices), sizeof(unsigned short)+pg.numIndices);
+                        filebuffer.write(reinterpret_cast<const char *>(pg.indices), sizeof(unsigned short) + pg.numIndices);
                     }
                     //save prims strip files in meshIndex dir
                 }
