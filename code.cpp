@@ -2,6 +2,7 @@
 #include <fstream>
 #include <algorithm>
 #include <vector>
+#include <map>
 #include <string>
 #include <memory>
 #include <filesystem>
@@ -75,9 +76,10 @@ int main(int argc, char *argv[])
                 //aiColor3D pColor{};
                 //pScene->mMaterials[paiMesh->mMaterialIndex]->Get(AI_MATKEY_COLOR_DIFFUSE, pColor);
                 //const aiVector3D Zero3D{};
+                map<unsigned int, unsigned int> pIndexMap;
                 {
-                    std::vector<float> vertexBuffer;
-
+                    vector<float> vertexBuffer;
+                    map<aiVector3D, unsigned int> pPosMap;
                     for (unsigned int vertIndex = 0; vertIndex < paiMesh->mNumVertices; ++vertIndex)
                     {
                         for (auto fm : FMT)
@@ -92,6 +94,10 @@ int main(int argc, char *argv[])
                                     vertexBuffer.push_back(pPos.x);
                                     vertexBuffer.push_back(-pPos.y);
                                     vertexBuffer.push_back(pPos.z);
+                                    //auto [ignore, bInset] =
+                                    pPosMap.try_emplace(pPos, vertIndex);
+                                    //if (!bInset)
+                                    pIndexMap.try_emplace(vertIndex, pPosMap[pPos]);
                                 }
                                 break;
                             case 'N':
@@ -142,7 +148,12 @@ int main(int argc, char *argv[])
                     }
                     //save vertexBuffer file in meshIndex dir
                     string path = loadFilename + "_" + to_string(meshIndex) + "_" + FMT + "_vert.bin";
-                    ofstream filebuffer{path, std::ios::out | std::ofstream::binary};
+                    cout << path << '\n'
+                         << "paiMesh->mNumVertices" << paiMesh->mNumVertices << '\n'
+                         << "vertexBuffer.size()" << vertexBuffer.size() << '\n'
+                         << "pPosMap.size()" << pPosMap.size() << endl;
+
+                    ofstream filebuffer{path, ios::out | ofstream::binary};
                     copy(vertexBuffer.begin(), vertexBuffer.end(), ostreambuf_iterator<char>(filebuffer));
                 }
                 {
@@ -160,9 +171,14 @@ int main(int argc, char *argv[])
 
                     { //save indexBuffer file in meshIndex dir
                         string path = loadFilename + "_" + to_string(meshIndex) + "_indx.bin";
-                        ofstream filebuffer{path, std::ios::out | std::ofstream::binary};
+                        cout << path << '\n'
+                             << paiMesh->mNumFaces << '\n'
+                             << indexBuffer.size() << endl;
+                        ofstream filebuffer{path, ios::out | ofstream::binary};
                         copy(indexBuffer.begin(), indexBuffer.end(), ostreambuf_iterator<char>(filebuffer));
                     }
+                    cout << "pIndexMap.size()" << pIndexMap.size() << endl;
+                    for_each(indexBuffer.begin(), indexBuffer.end(), [&](auto &n) { n = pIndexMap[n]; });
                     unique_ptr<PrimitiveGroup[]> prims;
                     unsigned short numprims;
                     {
@@ -170,13 +186,13 @@ int main(int argc, char *argv[])
                         bool done = GenerateStrips(indexBuffer.data(), indexBuffer.size(), &pprims, &numprims);
                         prims.reset(pprims);
                     }
-                    for (unsigned int primidx = 0; primidx < numprims; + primidx)
+                    for (unsigned int primidx = 0; primidx < numprims; ++primidx)
                     {
                         PrimitiveGroup &pg = prims[primidx];
-                        string path = loadFilename + "_" + to_string(meshIndex) + "_strip_" + to_string(primidx) +"_"+to_string(pg.type)+ "_indx.bin";
+                        string path = loadFilename + "_" + to_string(meshIndex) + "_strip_" + to_string(primidx) + "_" + to_string(pg.type) + "_indx.bin";
                         cout << "pg.type:" << pg.type << endl;
                         cout << "pg.numIndices:" << pg.numIndices << endl;
-                        ofstream filebuffer{path, std::ios::out | std::ofstream::binary};
+                        ofstream filebuffer{path, ios::out | ofstream::binary};
                         filebuffer.write(reinterpret_cast<const char *>(pg.indices), sizeof(unsigned short) + pg.numIndices);
                     }
                     //save prims strip files in meshIndex dir
@@ -184,33 +200,5 @@ int main(int argc, char *argv[])
             }
         }
     }
-
-    vector<unsigned short> indices{1, 2, 3, 2, 3, 4, static_cast<unsigned short>(-1)};
-    //Call NvTriStrip to generate the strips
-    //PrimitiveGroup *prims;
-    unique_ptr<PrimitiveGroup[]> prims;
-    unsigned short numprims;
-    {
-        PrimitiveGroup *pprims;
-        bool done = GenerateStrips(indices.data(), indices.size(), &pprims, &numprims);
-        prims.reset(pprims);
-    }
-    cout << "numprims:" << numprims << endl;
-
-    for (unsigned int primidx = 0; primidx < numprims; primidx++)
-    {
-        PrimitiveGroup &pg = prims[primidx];
-
-        cout << "pg.type:" << pg.type << endl;
-        cout << "pg.numIndices:" << pg.numIndices << endl;
-
-        for (unsigned int i = 0; i < pg.numIndices; i++)
-        {
-            cout << pg.indices[i] << " ";
-        }
-
-        cout << endl;
-    }
-
     //cleanup
 }
