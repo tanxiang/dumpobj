@@ -170,6 +170,15 @@ int main(int argc, char *argv[])
                         bool done = GenerateStrips(indexBuffer.data(), indexBuffer.size(), &pprims, &numprims);
                         prims.reset(pprims);
                     }
+                    for (unsigned int primidx = 0; primidx < numprims; + primidx)
+                    {
+                        PrimitiveGroup &pg = prims[primidx];
+                        string path = loadFilename + "_" + to_string(meshIndex) + "_strip_" + to_string(primidx) + "_indx.bin";
+                        cout << "pg.type:" << pg.type << endl;
+                        cout << "pg.numIndices:" << pg.numIndices << endl;
+                        ofstream filebuffer{path, std::ios::out | std::ofstream::binary};
+                        filebuffer.write(reinterpret_cast<const char *>(pg.indices), sizeof(unsigned short)+pg.numIndices);
+                    }
                     //save prims strip files in meshIndex dir
                 }
             }
