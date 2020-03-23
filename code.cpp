@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     string runName;
     vector<string> loadFilenames;
     string FMT = "PNT";
-    int defaultFlags = aiProcessPreset_TargetRealtime_Fast;
+    int defaultFlags = aiProcessPreset_TargetRealtime_MaxQuality;
     bool noStrip = false;
     for (int argi = 0; argi < argc; ++argi)
     {
@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
                 if (num != 1)
                 {
                     cerr << "Error reading cache size for -cs argument" << endl;
-                    exit(-1);
+                    return -1;
                 }
 
                 SetCacheSize(cachesize);
@@ -61,6 +61,8 @@ int main(int argc, char *argv[])
             }
         }
     }
+    SetStitchStrips(true);
+    //  EnableRestart(65535);
     Assimp::Importer Importer;
     for (auto &loadFilename : loadFilenames)
     {
@@ -80,12 +82,16 @@ int main(int argc, char *argv[])
                 //aiColor3D pColor{};
                 //pScene->mMaterials[paiMesh->mMaterialIndex]->Get(AI_MATKEY_COLOR_DIFFUSE, pColor);
                 //const aiVector3D Zero3D{};
-                //map<unsigned int, unsigned int> pIndexMap;
+                map<unsigned int, unsigned int> indexMap;
                 {
                     vector<float> vertexBuffer;
-                    //map<aiVector3D, unsigned int> pPosMap;
+                    //map<aiVector3D,map<aiVector3D,map<vector<float>,int>>> pPosMap;
+                    //multimap<vector<float>,>
+                    map<vector<float>, int> vertexMap;
                     for (unsigned int vertIndex = 0; vertIndex < paiMesh->mNumVertices; ++vertIndex)
                     {
+                        vector<float> vertexPoint;
+
                         for (auto fm : FMT)
                         {
                             auto vertexBufferSize = vertexBuffer.size();
@@ -95,9 +101,9 @@ int main(int argc, char *argv[])
                                 if (paiMesh->HasPositions())
                                 {
                                     const auto &pPos = paiMesh->mVertices[vertIndex];
-                                    vertexBuffer.push_back(pPos.x);
-                                    vertexBuffer.push_back(-pPos.y);
-                                    vertexBuffer.push_back(pPos.z);
+                                    vertexPoint.push_back(pPos.x);
+                                    vertexPoint.push_back(-pPos.y);
+                                    vertexPoint.push_back(pPos.z);
                                     //auto [ignore, bInset] =
                                     //pPosMap.try_emplace(pPos, vertIndex);
                                     //if (!bInset)
@@ -108,41 +114,44 @@ int main(int argc, char *argv[])
                                 if (paiMesh->HasNormals())
                                 {
                                     const auto &pNormal = paiMesh->mNormals[vertIndex];
-                                    vertexBuffer.push_back(pNormal.x);
-                                    vertexBuffer.push_back(-pNormal.y);
-                                    vertexBuffer.push_back(pNormal.z);
+                                    vertexPoint.push_back(pNormal.x);
+                                    vertexPoint.push_back(-pNormal.y);
+                                    vertexPoint.push_back(pNormal.z);
                                 }
                                 break;
                             case 'T':
                                 if (paiMesh->HasTextureCoords(0))
                                 {
                                     const auto &pTexCoord = paiMesh->mTextureCoords[0][vertIndex];
-                                    vertexBuffer.push_back(pTexCoord.x);
-                                    vertexBuffer.push_back(pTexCoord.y);
+                                    vertexPoint.push_back(pTexCoord.x);
+                                    vertexPoint.push_back(pTexCoord.y);
                                 }
                                 break;
                             case 'C':
                                 if (paiMesh->HasVertexColors(vertIndex))
                                 {
                                     const auto &pTangent = paiMesh->mTangents[vertIndex];
-                                    vertexBuffer.push_back(pTangent.x);
-                                    vertexBuffer.push_back(pTangent.y);
-                                    vertexBuffer.push_back(pTangent.z);
+                                    vertexPoint.push_back(pTangent.x);
+                                    vertexPoint.push_back(pTangent.y);
+                                    vertexPoint.push_back(pTangent.z);
                                 }
                                 break;
                             case 'A':
                                 if (paiMesh->HasTangentsAndBitangents())
                                 {
                                     const auto &pTangent = paiMesh->mTangents[vertIndex];
-                                    vertexBuffer.push_back(pTangent.x);
-                                    vertexBuffer.push_back(pTangent.y);
-                                    vertexBuffer.push_back(pTangent.z);
+                                    vertexPoint.push_back(pTangent.x);
+                                    vertexPoint.push_back(pTangent.y);
+                                    vertexPoint.push_back(pTangent.z);
                                 }
                                 break;
                             default:
                                 cerr << "CANNOT GET:" << fm << endl;
                                 return -2;
                             }
+                            copy(begin(vertexPoint), end(vertexPoint), back_inserter(vertexBuffer));
+                            vertexMap.try_emplace(vertexPoint, vertIndex);
+                            indexMap.try_emplace(vertIndex, vertexMap[vertexPoint]);
                             if (vertexBufferSize == vertexBuffer.size())
                             {
                                 cerr << "NO:" << fm << " in model mesh" << endl;
@@ -150,7 +159,24 @@ int main(int argc, char *argv[])
                             }
                         }
                     }
+
+                    /*
+                    auto iterMap = vertexMap.begin();
+                    while (iterMap != vertexMap.end())
+                    {
+                        auto iterMapNext = iterMap;
+                        ++iterMapNext;
+
+                        while (iterMapNext != vertexMap.end() && equal(iterMap->first.begin(), iterMap->first.begin() + 3, iterMapNext->first.begin()))
+                        {
+                            cout << "merg " << iterMap->second << " to " << iterMapNext->second << endl;
+                            ++iterMapNext;
+                        }
+                        //merg iterMap->iterMapNext
+                        iterMap = iterMapNext;
+                    }
                     //save vertexBuffer file in meshIndex dir
+                    */
                     string path = loadFilename + "_" + to_string(meshIndex) + "_" + FMT + "_vert.bin";
                     cout << path << '\n'
                          << "paiMesh->mNumVertices" << paiMesh->mNumVertices << '\n'
@@ -181,30 +207,30 @@ int main(int argc, char *argv[])
                         copy(indexBuffer.begin(), indexBuffer.end(), ostreambuf_iterator<char>(filebuffer));
                     }
                     //cout << "pIndexMap.size()" << pIndexMap.size() << endl;
-                    for_each(indexBuffer.begin(), indexBuffer.end(), [&](auto &n) { cout << n << ' '; });
-                    cout << endl;
-                    //for_each(indexBuffer.begin(), indexBuffer.end(), [&](auto &n) { n = pIndexMap[n]; });
                     //for_each(indexBuffer.begin(), indexBuffer.end(), [&](auto &n) { cout << n << ' '; });
-                    //cout << endl;
+                    cout << endl;
+                    for_each(indexBuffer.begin(), indexBuffer.end(), [&](auto &n) { n = indexMap[n]; });
+                    //for_each(indexBuffer.begin(), indexBuffer.end(), [&](auto &n) { cout << n << ' '; });
+                    cout << endl;
 
                     unique_ptr<PrimitiveGroup[]> prims;
                     unsigned short numprims;
                     {
                         PrimitiveGroup *pprims;
-                        bool done = GenerateStrips(indexBuffer.data(), indexBuffer.size(), &pprims, &numprims);
+                        bool done = GenerateStrips(indexBuffer.data(), indexBuffer.size(), &pprims, &numprims, true);
                         prims.reset(pprims);
                     }
                     for (unsigned int primidx = 0; primidx < numprims; ++primidx)
                     {
                         PrimitiveGroup &pg = prims[primidx];
-                        string path = loadFilename + "_" + to_string(meshIndex) + "_strip_" + to_string(primidx) + "_" + to_string(pg.type) + "_indx.bin";
                         cout << "pg.type:" << pg.type << endl;
                         cout << "pg.numIndices:" << pg.numIndices << endl;
-                        for (int i; i < pg.numIndices; ++i)
-                        {
-                            cout << pg.indices[i] << ' ';
-                        }
+                        //for (int i = 0; i < pg.numIndices; ++i)
+                        //{
+                            //cout << pg.indices[i] << ' ';
+                        //}
                         cout << endl;
+                        string path = loadFilename + "_" + to_string(meshIndex) + "_strip_" + to_string(primidx) + "_" + to_string(pg.type) + "_indx.bin";
                         ofstream filebuffer{path, ios::out | ofstream::binary};
                         filebuffer.write(reinterpret_cast<const char *>(pg.indices), sizeof(unsigned short) + pg.numIndices);
                     }
