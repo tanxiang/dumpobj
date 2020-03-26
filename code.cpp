@@ -7,20 +7,21 @@
 #include <memory>
 #include <filesystem>
 #include "NvTriStrip.h"
-
+#include "proto/model.pb.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <assimp/cimport.h>
 
 using namespace std;
+static const int defaultFlags = aiProcess_FlipWindingOrder | aiProcess_Triangulate | aiProcess_PreTransformVertices | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals;
 
 int main(int argc, char *argv[])
 {
     string runName;
     vector<string> loadFilenames;
     string FMT = "PNT";
-    int defaultFlags = aiProcessPreset_TargetRealtime_MaxQuality;
+    //int defaultFlags = aiProcessPreset_TargetRealtime_MaxQuality;
     bool noStrip = false;
     for (int argi = 0; argi < argc; ++argi)
     {
@@ -207,10 +208,10 @@ int main(int argc, char *argv[])
                         copy(indexBuffer.begin(), indexBuffer.end(), ostreambuf_iterator<char>(filebuffer));
                     }
                     //cout << "pIndexMap.size()" << pIndexMap.size() << endl;
-                    //for_each(indexBuffer.begin(), indexBuffer.end(), [&](auto &n) { cout << n << ' '; });
+                    for_each(indexBuffer.begin(), indexBuffer.end(), [&](auto &n) { cout << n << ' '; });
                     cout << endl;
                     for_each(indexBuffer.begin(), indexBuffer.end(), [&](auto &n) { n = indexMap[n]; });
-                    //for_each(indexBuffer.begin(), indexBuffer.end(), [&](auto &n) { cout << n << ' '; });
+                    for_each(indexBuffer.begin(), indexBuffer.end(), [&](auto &n) { cout << n << ' '; });
                     cout << endl;
 
                     unique_ptr<PrimitiveGroup[]> prims;
@@ -220,20 +221,39 @@ int main(int argc, char *argv[])
                         bool done = GenerateStrips(indexBuffer.data(), indexBuffer.size(), &pprims, &numprims, true);
                         prims.reset(pprims);
                     }
+                    string extIndexFileName;
                     for (unsigned int primidx = 0; primidx < numprims; ++primidx)
                     {
                         PrimitiveGroup &pg = prims[primidx];
                         cout << "pg.type:" << pg.type << endl;
                         cout << "pg.numIndices:" << pg.numIndices << endl;
-                        //for (int i = 0; i < pg.numIndices; ++i)
-                        //{
-                            //cout << pg.indices[i] << ' ';
-                        //}
+                        for (int i = 0; i < pg.numIndices; ++i)
+                        {
+                            cout << pg.indices[i] << ' ';
+                        }
                         cout << endl;
                         string path = loadFilename + "_" + to_string(meshIndex) + "_strip_" + to_string(primidx) + "_" + to_string(pg.type) + "_indx.bin";
-                        ofstream filebuffer{path, ios::out | ofstream::binary};
-                        filebuffer.write(reinterpret_cast<const char *>(pg.indices), sizeof(unsigned short) + pg.numIndices);
+                        extIndexFileName = path;
+
+                        std::cout << '\n'
+                                  << extIndexFileName << std::endl;
+                        ofstream filebuffer{path, ios::out | ios::binary};
+                        filebuffer.write(reinterpret_cast<const char *>(pg.indices), sizeof(unsigned short) * pg.numIndices);
                     }
+
+                    std::basic_ifstream<uint16_t> infile{extIndexFileName, ios::binary};
+                    if (infile)
+                    {
+                        infile.unsetf(ios::skipws);
+                        std::vector<uint16_t> indexExtra{};
+                        std::copy(std::istreambuf_iterator<uint16_t>{infile},{},std::back_insert_iterator{indexExtra});
+                        std::for_each(indexExtra.begin(), indexExtra.end(),
+                                      [&](uint16_t n) { std::cout << n << ' '; });
+                        std::cout << '\n'
+                                  << extIndexFileName << std::endl;
+                    }
+                    ptfile::Model mode{};
+                    mode.add_indices();
                     //save prims strip files in meshIndex dir
                 }
             }

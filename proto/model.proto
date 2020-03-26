@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package ptfile;
+
+message Model {
+    string name = 1;
+    repeated float vertices = 2;
+    enum Type {
+        list = 0;
+        strip = 1;
+        fan = 2;
+    }
+    Type type = 3;
+    repeated uint32 indices = 4;
+}
