@@ -7,10 +7,16 @@ add_library(NvStrip STATIC NvTriStrip.cpp NvTriStripObjects.cpp)
 
 find_package(Assimp REQUIRED)
 
-message(STATUS "Assimp status:")
-message(STATUS "    libraries: ${ASSIMP_LIBRARIES}")
+#message(STATUS "Assimp status:")
+#message(STATUS "    libraries: ${ASSIMP_LIBRARIES}")
+add_subdirectory(proto)
+
+#INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+find_package(Protobuf REQUIRED)
 
 add_executable(objmodea3 code.cpp)
-#target_include_directories(objmodea3 "${ASSIMP_INCLUDE_DIR}")
-target_link_libraries(objmodea3 NvStrip "${ASSIMP_LIBRARIES}")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}")
+
+target_link_libraries(objmodea3 NvStrip ${ASSIMP_LIBRARIES} ${PROTOBUF_LIBRARIES} proto)
+
 set_property(TARGET objmodea3 PROPERTY CXX_STANDARD 17)
