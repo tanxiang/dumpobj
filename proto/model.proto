@@ -4,12 +4,21 @@ package ptfile;
 
 message Model {
     string name = 1;
-    repeated float vertices = 2;
-    enum Type {
-        list = 0;
-        strip = 1;
-        fan = 2;
+    message Index{
+        enum Type {
+            list = 0;
+            strip = 1;
+            fan = 2;
+        }
+        Type type = 1;
+        repeated uint32 indices = 2;
+        string name = 3;
     }
-    Type type = 3;
-    repeated uint32 indices = 4;
+
+    message Mesh{
+        repeated float vertices = 1;
+        repeated Index drawStep = 2;
+        string name = 3;
+    }
+    repeated Mesh meshs = 2;
 }
