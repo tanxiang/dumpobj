@@ -5,7 +5,7 @@ project(objmodea3)
 
 add_library(NvStrip STATIC NvTriStrip.cpp NvTriStripObjects.cpp)
 
-find_package(Assimp REQUIRED)
+find_package(assimp REQUIRED)
 
 #message(STATUS "Assimp status:")
 #message(STATUS "    libraries: ${ASSIMP_LIBRARIES}")
