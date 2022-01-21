@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 {
     string runName;
     vector<string> loadFilenames;
-    string FMT = "PNT";
+    string FMT = "PNT",FMTGet{};
     //int defaultFlags = aiProcessPreset_TargetRealtime_MaxQuality;
     bool noStrip = false;
     float pointscale = 1.0f;
@@ -149,6 +149,8 @@ int main(int argc, char *argv[])
                                 vertexPoint.push_back(pPos.x * pointscale);
                                 vertexPoint.push_back(pPos.y * pointscale);
                                 vertexPoint.push_back(pPos.z * pointscale);
+                                if(vertIndex == 0)
+                                    FMTGet+= fm;
                             }
                             break;
                         case 'N':
@@ -158,6 +160,8 @@ int main(int argc, char *argv[])
                                 vertexPoint.push_back(pNormal.x);
                                 vertexPoint.push_back(pNormal.y);
                                 vertexPoint.push_back(pNormal.z);
+                                if(vertIndex == 0)
+                                    FMTGet+= fm;
                             }
                             break;
                         case 'T':
@@ -166,11 +170,15 @@ int main(int argc, char *argv[])
                                 const auto &pTexCoord = paiMesh->mTextureCoords[0][vertIndex];
                                 vertexPoint.push_back(pTexCoord.x);
                                 vertexPoint.push_back(pTexCoord.y);
+                                if(vertIndex == 0)
+                                    FMTGet+= fm;
                             }
                             break;
                         case 't':
                             vertexPoint.push_back(0.0);
                             vertexPoint.push_back(0.0);
+                                if(vertIndex == 0)
+                                    FMTGet+= fm;
                             break;
                         case 'C':
                             if (paiMesh->HasVertexColors(vertIndex))
@@ -179,6 +187,8 @@ int main(int argc, char *argv[])
                                 vertexPoint.push_back(pTangent.x);
                                 vertexPoint.push_back(pTangent.y);
                                 vertexPoint.push_back(pTangent.z);
+                                if(vertIndex == 0)
+                                    FMTGet+= fm;
                             }
                             break;
                         case 'A':
@@ -188,6 +198,8 @@ int main(int argc, char *argv[])
                                 vertexPoint.push_back(pTangent.x);
                                 vertexPoint.push_back(pTangent.y);
                                 vertexPoint.push_back(pTangent.z);
+                                if(vertIndex == 0)
+                                    FMTGet+= fm;
                             }
                             break;
                         default:
@@ -225,7 +237,7 @@ int main(int argc, char *argv[])
                     copy(val.second.begin(), val.second.end(), back_insert_iterator(vertexBuffer));
                 }
                 ostringstream spath;
-                spath << saveDir << "mesh_" <<  std::setw(3) << std::setfill('0') << meshIndex << '_' << FMT << ".bin";
+                spath << saveDir << "mesh_" <<  std::setw(3) << std::setfill('0') << meshIndex << '_' << FMTGet << ".bin";
                 cout << spath.str() << '\n'
                      << "paiMesh->mNumVertices" << paiMesh->mNumVertices << '\n'
                      << "vertexBuffer.size()" << vertexbufferOrg.size() << endl;
@@ -242,7 +254,7 @@ int main(int argc, char *argv[])
             ostringstream sdpath;
             sdpath << saveDir << "mesh_" <<  std::setw(3) << std::setfill('0') << meshIndex <<"_index_" << '0' <<  "_slist_draw" << ".bin";
             ofstream filebufferdraw{sdpath.str(), ios::out | ios::binary};
-            array<uint32_t, 5> drawCmd{indexBuffer.size(), 1, 0, 0, 0};
+            array<uint32_t, 5> drawCmd{static_cast<uint32_t>(indexBuffer.size()), 1, 0, 0, 0};
             filebufferdraw.write(reinterpret_cast<const char *>(drawCmd.data()), sizeof(decltype(drawCmd)::value_type) * drawCmd.size());
             unique_ptr<PrimitiveGroup[]> prims;
             unsigned short numprims;
