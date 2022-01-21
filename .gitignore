@@ -1,3 +1,8 @@
 build
 history
 .vscode
+proto/local/bin/protoc
+proto/local/lib/libprotoc.a
+build/.cmake/api/v1/query/client-vscode/query.json
+proto/local/lib/cmake/protobuf/protobuf-targets-noconfig.cmake
+proto/local/bin/protoc-3.11.4.0
