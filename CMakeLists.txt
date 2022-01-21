@@ -19,4 +19,4 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 target_link_libraries(objmodea3 NvStrip ${ASSIMP_LIBRARIES} ${PROTOBUF_LIBRARIES} proto)
 
-set_property(TARGET objmodea3 PROPERTY CXX_STANDARD 17)
+set_property(TARGET objmodea3 PROPERTY CXX_STANDARD 20)
