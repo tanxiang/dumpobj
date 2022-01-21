@@ -292,7 +292,7 @@ int main(int argc, char *argv[])
         string path = loadFilename + ".idx.bin";
         ofstream savemt{path, ios::out | ios::binary};
         savemt.write(reinterpret_cast<const char *>(materials.data()), sizeof(decltype(materials)::value_type) * materials.size());
-        path = loadFilename + '.' + FMT + ".pt";
+        path = loadFilename + '.' + FMTGet + ".pt";
         ofstream savept{path, ios::out | ios::binary};
         mode.SerializePartialToOstream(&savept);
         checkf = path;
