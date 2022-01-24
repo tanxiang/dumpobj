@@ -177,8 +177,8 @@ int main(int argc, char *argv[])
                         case 't':
                             vertexPoint.push_back(0.0);
                             vertexPoint.push_back(0.0);
-                                if(vertIndex == 0)
-                                    FMTGet+= fm;
+                            if(vertIndex == 0)
+                                FMTGet+= fm;
                             break;
                         case 'C':
                             if (paiMesh->HasVertexColors(vertIndex))
@@ -302,9 +302,9 @@ int main(int argc, char *argv[])
         google::protobuf::SetLogHandler([](google::protobuf::LogLevel level, const char *filename, int line, const std::string &message) {
             cout << "message:::" << message;
         });
-        if (!checkMode.ParseFromIstream(&checkifs))
-            cout << "ParseFromIstream:::error" << endl;
-        cout << "loadmodule:::" << checkMode.name() << endl;
+        //if (!checkMode.ParseFromIstream(&checkifs))
+        //    cout << "ParseFromIstream:::error" << endl;
+        //cout << "loadmodule:::" << checkMode.name() << endl;
     }
     //cleanup
 }
