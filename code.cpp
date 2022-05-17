@@ -1,4 +1,5 @@
 #include <iostream>
+#include <array>
 #include <fstream>
 #include <filesystem>
 #include <algorithm>
@@ -8,7 +9,7 @@
 #include <memory>
 #include <filesystem>
 #include "NvTriStrip.h"
-#include "proto/model.pb.h"
+//#include "proto/model.pb.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -77,8 +78,8 @@ int main(int argc, char *argv[])
     for (auto &loadFilename : loadFilenames)
     {
         auto pScene = Importer.ReadFile(loadFilename, defaultFlags);
-        ptfile::Model mode{};
-        mode.set_name(loadFilename);
+        //ptfile::Model mode{};
+        //mode.set_name(loadFilename);
         string saveDir = loadFilename + ".ext/";
         filesystem::create_directories(saveDir);
         string checkf;
@@ -124,7 +125,7 @@ int main(int argc, char *argv[])
         vector<uint16_t> materials;
         for (unsigned int meshIndex = 0; meshIndex < pScene->mNumMeshes; ++meshIndex)
         {
-            auto saveMesh = mode.add_meshs();
+            //auto saveMesh = mode.add_meshs();
             std::vector<uint16_t> indexBuffer;
             {
                 auto paiMesh = pScene->mMeshes[meshIndex];
@@ -243,7 +244,7 @@ int main(int argc, char *argv[])
                      << "vertexBuffer.size()" << vertexbufferOrg.size() << endl;
                 ofstream filebuffer{spath.str(), ios::out | ofstream::binary};
                 filebuffer.write(reinterpret_cast<char *>(vertexBuffer.data()), vertexBuffer.size() * sizeof(decltype(vertexBuffer)::value_type));
-                *saveMesh->mutable_vertices() = {vertexBuffer.begin(), vertexBuffer.end()};
+                //*saveMesh->mutable_vertices() = {vertexBuffer.begin(), vertexBuffer.end()};
                 for_each(indexBuffer.begin(), indexBuffer.end(), [&](auto &n) { n = indexMap[n]; });
             }
 
@@ -265,13 +266,13 @@ int main(int argc, char *argv[])
             }
             for (unsigned int primidx = 0; primidx < numprims; ++primidx)
             {
-                auto drawstep = saveMesh->add_drawstep();
+                //auto drawstep = saveMesh->add_drawstep();
                 PrimitiveGroup &pg = prims[primidx];
                 cout << "pg.type:" << pg.type << endl;
-                drawstep->set_type(ptfile::Model_Index_Type_strip);
+                //drawstep->set_type(ptfile::Model_Index_Type_strip);
 
                 cout << "pg.numIndices:" << pg.numIndices << endl;
-                *drawstep->mutable_indices() = {pg.indices, pg.indices + pg.numIndices};
+                //*drawstep->mutable_indices() = {pg.indices, pg.indices + pg.numIndices};
                 //for (int i = 0; i < pg.numIndices; ++i)
                 //{
                 //    cout << pg.indices[i] << ' ';
@@ -293,15 +294,15 @@ int main(int argc, char *argv[])
         ofstream savemt{path, ios::out | ios::binary};
         savemt.write(reinterpret_cast<const char *>(materials.data()), sizeof(decltype(materials)::value_type) * materials.size());
         path = loadFilename + '.' + FMTGet + ".pt";
-        ofstream savept{path, ios::out | ios::binary};
-        mode.SerializePartialToOstream(&savept);
+        //ofstream savept{path, ios::out | ios::binary};
+        //mode.SerializePartialToOstream(&savept);
         checkf = path;
 
-        ptfile::Model checkMode;
-        fstream checkifs{checkf, ios::in | ios::binary};
-        google::protobuf::SetLogHandler([](google::protobuf::LogLevel level, const char *filename, int line, const std::string &message) {
-            cout << "message:::" << message;
-        });
+        //ptfile::Model checkMode;
+        //fstream checkifs{checkf, ios::in | ios::binary};
+        //google::protobuf::SetLogHandler([](google::protobuf::LogLevel level, const char *filename, int line, const std::string &message) {
+        //    cout << "message:::" << message;
+        //});
         //if (!checkMode.ParseFromIstream(&checkifs))
         //    cout << "ParseFromIstream:::error" << endl;
         //cout << "loadmodule:::" << checkMode.name() << endl;
