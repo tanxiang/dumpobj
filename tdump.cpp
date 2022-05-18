@@ -9,7 +9,6 @@
 #include <memory>
 #include <filesystem>
 #include "NvTriStrip.h"
-//#include "proto/model.pb.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -23,13 +22,11 @@ int main(int argc, char *argv[])
     string runName;
     vector<string> loadFilenames;
     string FMT = "PNT",FMTGet{};
-    //int defaultFlags = aiProcessPreset_TargetRealtime_MaxQuality;
     bool noStrip = false;
-    float pointscale = 1.0f;
+    float pointscale = 0.3f;
 
     for (int argi = 0; argi < argc; ++argi)
     {
-        //cout << argv[argi] << endl;
         if (!argi)
             runName = argv[argi];
         else
@@ -61,10 +58,10 @@ int main(int argc, char *argv[])
                 ++argi;
                 pointscale = std::stof(argv[argi]);
             }
-            else if (strcmp(argv[argi], "-ns") == 0 ||
-                     strcmp(argv[argi], "--nostrip") == 0)
+            else if (strcmp(argv[argi], "-ds") == 0 ||
+                     strcmp(argv[argi], "--dostrip") == 0)
             {
-                noStrip = true;
+                SetStitchStrips(true);
             }
             else
             {
@@ -72,7 +69,6 @@ int main(int argc, char *argv[])
             }
         }
     }
-    SetStitchStrips(true);
     //  EnableRestart(65535);
     Assimp::Importer Importer;
     for (auto &loadFilename : loadFilenames)

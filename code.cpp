@@ -22,14 +22,13 @@ int main(int argc, char *argv[])
 {
     string runName;
     vector<string> loadFilenames;
-    string FMT = "PNT",FMTGet{};
+    string FMT = "P",FMTGet{};
     //int defaultFlags = aiProcessPreset_TargetRealtime_MaxQuality;
     bool noStrip = false;
     float pointscale = 1.0f;
 
     for (int argi = 0; argi < argc; ++argi)
     {
-        //cout << argv[argi] << endl;
         if (!argi)
             runName = argv[argi];
         else
