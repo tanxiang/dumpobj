@@ -22,12 +22,10 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 target_link_libraries(objmodea3 NvStrip ${ASSIMP_LIBRARIES})
 
-set_property(TARGET objmodea3 PROPERTY CXX_STANDARD 20)
-
 add_executable(tdump tdump.cpp)
 
 target_link_libraries(tdump NvStrip ${ASSIMP_LIBRARIES})
 
-set_property(TARGET tdump PROPERTY CXX_STANDARD 20)
+set_property(GLOBAL PROPERTY CXX_STANDARD 20)
 
 
