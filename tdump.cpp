@@ -8,7 +8,6 @@
 #include <string>
 #include <memory>
 #include <filesystem>
-#include "NvTriStrip.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -32,22 +31,8 @@ int main(int argc, char *argv[])
             runName = argv[argi];
         else
         {
-            if (strcmp(argv[argi], "-cs") == 0 ||
-                strcmp(argv[argi], "--cachesize") == 0)
-            {
-                ++argi;
-
-                int cachesize = 16;
-                int num = sscanf(argv[argi], "%d", &cachesize);
-                if (num != 1)
-                {
-                    cerr << "Error reading cache size for -cs argument" << endl;
-                    return -1;
-                }
-
-                SetCacheSize(cachesize);
-            }
-            else if (strcmp(argv[argi], "-fm") == 0 ||
+            
+            if (strcmp(argv[argi], "-fm") == 0 ||
                      strcmp(argv[argi], "--fromat") == 0)
             {
                 ++argi;
@@ -58,11 +43,6 @@ int main(int argc, char *argv[])
             {
                 ++argi;
                 pointscale = std::stof(argv[argi]);
-            }
-            else if (strcmp(argv[argi], "-ds") == 0 ||
-                     strcmp(argv[argi], "--dostrip") == 0)
-            {
-                SetStitchStrips(true);
             }
             else
             {
@@ -282,40 +262,7 @@ int main(int argc, char *argv[])
             ofstream filebufferdraw{sdpath.str(), ios::out | ios::binary};
             array<uint32_t, 5> drawCmd{static_cast<uint32_t>(indexBuffer.size()), 1, 0, 0, 0};
             filebufferdraw.write(reinterpret_cast<const char *>(drawCmd.data()), sizeof(decltype(drawCmd)::value_type) * drawCmd.size());
-            unique_ptr<PrimitiveGroup[]> prims;
-            unsigned short numprims;
-            {
-                PrimitiveGroup *pprims;
-                bool done = GenerateStrips(indexBuffer.data(), indexBuffer.size(), &pprims, &numprims, true);
-                prims.reset(pprims);
-            }
-            for (unsigned int primidx = 0; primidx < numprims; ++primidx)
-            {
-                // auto drawstep = saveMesh->add_drawstep();
-                PrimitiveGroup &pg = prims[primidx];
-                cout << "pg.type:" << pg.type << endl;
-                // drawstep->set_type(ptfile::Model_Index_Type_strip);
-
-                cout << "pg.numIndices:" << pg.numIndices << endl;
-                //*drawstep->mutable_indices() = {pg.indices, pg.indices + pg.numIndices};
-                // for (int i = 0; i < pg.numIndices; ++i)
-                //{
-                //    cout << pg.indices[i] << ' ';
-                //}
-                cout << endl;
-                ostringstream spath;
-                spath << saveDir << "mesh_" << std::setw(3) << std::setfill('0') << meshIndex << "_index_" << primidx << "_strip"
-                      << ".bin";
-                ofstream filebuffer{spath.str(), ios::out | ios::binary};
-                filebuffer.write(reinterpret_cast<const char *>(pg.indices), sizeof(unsigned short) * pg.numIndices);
-                ostringstream sdpath;
-
-                sdpath << saveDir << "mesh_" << std::setw(3) << std::setfill('0') << meshIndex << "_index_" << primidx << "_strip_draw"
-                       << ".bin";
-                ofstream filebufferdraw{sdpath.str(), ios::out | ios::binary};
-                array<uint32_t, 5> drawCmd{pg.numIndices, 1, 0, 0, 0};
-                filebufferdraw.write(reinterpret_cast<const char *>(drawCmd.data()), sizeof(decltype(drawCmd)::value_type) * drawCmd.size());
-            }
+            
         }
         string path = loadFilename + ".idx.bin";
         ofstream savemt{path, ios::out | ios::binary};

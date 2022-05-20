@@ -24,7 +24,7 @@ target_link_libraries(objmodea3 NvStrip ${ASSIMP_LIBRARIES})
 
 add_executable(tdump tdump.cpp)
 
-target_link_libraries(tdump NvStrip ${ASSIMP_LIBRARIES})
+target_link_libraries(tdump ${ASSIMP_LIBRARIES})
 
 set_property(GLOBAL PROPERTY CXX_STANDARD 20)
 
