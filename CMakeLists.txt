@@ -7,6 +7,9 @@ add_library(NvStrip STATIC NvTriStrip.cpp NvTriStripObjects.cpp)
 
 find_package(assimp REQUIRED)
 
+find_package(glm REQUIRED)
+
+
 #message(STATUS "Assimp status:")
 #message(STATUS "    libraries: ${ASSIMP_LIBRARIES}")
 #add_subdirectory(proto)
