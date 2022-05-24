@@ -239,7 +239,7 @@ int main(int argc, char *argv[])
                 map<int, int> indexMap;
                 for_each(indexBuffer.begin(), indexBuffer.end(), [&](auto &n)
                          { remapVertexMap.try_emplace(n, vertexbufferOrg[n]); });
-                vertexbufferOrg.clear();
+
                 uint32_t reindexidx = 0;
                 for (auto &val : remapVertexMap)
                 {
@@ -249,8 +249,8 @@ int main(int argc, char *argv[])
                 ostringstream spath;
                 spath << saveDir << "mesh_" << std::setw(3) << std::setfill('0') << meshIndex << '_' << FMTGet << ".bin";
                 cout << spath.str() << '\n'
-                     << "paiMesh->mNumVertices" << paiMesh->mNumVertices << '\n'
-                     << "vertexBuffer.size()" << vertexbufferOrg.size() << endl;
+                     << "paiMesh->mNumVertices " << paiMesh->mNumVertices  
+                     << "vertexBuffer.size() " << vertexBuffer.size() <<endl;
                 ofstream filebuffer{spath.str(), ios::out | ofstream::binary};
                 filebuffer.write(reinterpret_cast<char *>(vertexBuffer.data()), vertexBuffer.size() * sizeof(decltype(vertexBuffer)::value_type));
                 //*saveMesh->mutable_vertices() = {vertexBuffer.begin(), vertexBuffer.end()};
@@ -315,6 +315,9 @@ int main(int argc, char *argv[])
             if (flStrip)
             {
                 unique_ptr<PrimitiveGroup[]> prims;
+                for(int iIndex=1;iIndex<indexBuffer.size();iIndex+=3){
+                    swap(indexBuffer[iIndex],indexBuffer[iIndex+1]);
+                }
                 unsigned short numprims;
                 {
                     PrimitiveGroup *pprims;
@@ -328,7 +331,7 @@ int main(int argc, char *argv[])
                     cout << "pg.numIndices:" << pg.numIndices << endl;
                     {
                         ostringstream spath;
-                        spath << saveDir << "mesh_" << std::setw(3) << std::setfill('0') << meshIndex << "_index_" << primidx << "_strip"
+                        spath << saveDir << "mesh_" << std::setw(3) << std::setfill('0') << meshIndex << "_index_" << primidx << "_fpstrip"
                               << ".bin";
                         ofstream filebuffer{spath.str(), ios::out | ios::binary};
                         filebuffer.write(reinterpret_cast<const char *>(pg.indices), sizeof(unsigned short) * pg.numIndices);
@@ -337,7 +340,7 @@ int main(int argc, char *argv[])
                     {
                         ostringstream sdpath;
 
-                        sdpath << saveDir << "mesh_" << std::setw(3) << std::setfill('0') << meshIndex << "_index_" << primidx << "_strip_draw"
+                        sdpath << saveDir << "mesh_" << std::setw(3) << std::setfill('0') << meshIndex << "_index_" << primidx << "_fpstrip_draw"
                                << ".bin";
                         ofstream filebufferdraw{sdpath.str(), ios::out | ios::binary};
                         array<uint32_t, 5> drawCmd{pg.numIndices, 1, 0, 0, 0};
